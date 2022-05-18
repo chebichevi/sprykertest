@@ -1,0 +1,109 @@
+# This Docker Compose file should only be used for your development environment!
+version: '3.4'
+
+services:
+
+  traefik:
+    image: traefik:2.4
+    command:
+      - --providers.docker
+      - --providers.docker.exposedByDefault=false
+    labels:
+      - traefik.enable=true
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      default:
+        aliases:
+          # Required so that the web application is able to call the same endpoint
+          # from both the browser and the server.
+          - "$API_SUBDOMAIN.$DOMAIN"
+
+  api:
+    image: thecodingmachine/php:8.0-v4-apache
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.api_router.rule=Host(`${API_SUBDOMAIN}.${DOMAIN}`)
+    environment:
+      # Docker image.
+      # ---------------------
+      APACHE_DOCUMENT_ROOT: "public/"
+      PHP_EXTENSION_XDEBUG: "1"
+      PHP_EXTENSION_REDIS: "1"
+      PHP_EXTENSION_INTL: "1"
+      PHP_EXTENSION_GD: "1"
+      PHP_INI_MEMORY_LIMIT: "1G"
+      STARTUP_COMMAND_1: "composer install"
+      STARTUP_COMMAND_2: "php bin/console doctrine:migrations:migrate -n --allow-no-migration" #FIXME: if no flag --allow-no-migration, the command fails. Why?
+      # Symfony.
+      # ---------------------
+      APP_NAME: "${APP_NAME}"
+      APP_ENV: "dev"
+      APP_DEBUG: "1"
+      # Note: in your remote environments, make sure you do not change
+      # the value of APP_SECRET between deployments. Otherwise, password
+      # verification will not work anymore.
+      APP_SECRET: "${APP_SECRET}"
+      COOKIE_DOMAIN: ".${DOMAIN}" # The "." is important here; it tells that the cookie is available for $DOMAIN and its subdomains.
+      # CORS.
+      CORS_ALLOW_ORIGIN: "http://${DOMAIN}" # Never use "*": https://stackoverflow.com/questions/52060784/graphql-and-csrf-protection.
+      # Logging.
+      MONOLOG_LOGGING_PATH: "php://stderr"
+      # Database.
+      DATABASE_URL: "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}?server_version=8.0"
+      TESTS_DATABASE_URL: "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql_tests:3306/${MYSQL_DATABASE}?server_version=8.0"
+      # i18n.
+      DEFAULT_LOCALE: "${DEFAULT_LOCALE}"
+      # Mailer.
+      MAILER_DSN: "smtp://null:null@mailhog:1025"
+      MAIL_FROM_ADDRESS: "no-reply@${DOMAIN}"
+      MAIL_FROM_NAME: "$APP_NAME"
+      MAIL_WEBAPP_URL: "http://${DOMAIN}/"
+      MAIL_WEBAPP_UPDATE_PASSWORD_ROUTE_FORMAT: "%s/update-password/%s/%s" # {locale}/update-password/{resetPasswordTokenId}/{plainToken}
+      # Debug
+      XDEBUG_MODE: ${XDEBUG_MODE:-debug}
+    volumes:
+      - ./src/api:/var/www/html
+    depends_on:
+      - mysql
+
+  # For business data and user sessions.
+  mysql:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # For API testing.
+  mysql_tests:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    tmpfs:
+      - /var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.phpmyadmin_router.rule=Host(`phpmyadmin.$DOMAIN`)
+    environment:
+      PMA_HOSTS: "mysql, mysql_tests"
+      PMA_USER: "${MYSQL_USER}"
+      PMA_PASSWORD: "${MYSQL_PASSWORD}"
+
+volumes:
+
+  mysql_data:
+    driver: local

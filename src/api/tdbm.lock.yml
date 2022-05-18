@@ -1,0 +1,34 @@
+schema:
+  tables:
+    doctrine_migration_versions:
+      columns:
+        version:
+          primary_key: true
+          type: string
+          length: 191
+          not_null: true
+        executed_at:
+          type: datetime
+          length: 0
+        execution_time: integer
+    product:
+      columns:
+        id:
+          primary_key: true
+          type: guid
+          fixed: true
+          length: 36
+          not_null: true
+          comment: '@UUID'
+        product_name:
+          type: string
+          length: 255
+          not_null: true
+        part_number:
+          type: string
+          length: 255
+          not_null: true
+        price:
+          type: string
+          length: 255
+          not_null: true

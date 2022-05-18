@@ -1,0 +1,48 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+    # Parameters are values which are used directly in the code.
+    app.mail_title: '%env(APP_NAME)%'
+    app.mail_from_address: '%env(MAIL_FROM_ADDRESS)%'
+    app.mail_from_name: '%env(MAIL_FROM_NAME)%'
+    app.mail_webapp_url: '%env(MAIL_WEBAPP_URL)%'
+    app.mail_webapp_update_password_route_format: '%env(MAIL_WEBAPP_UPDATE_PASSWORD_ROUTE_FORMAT)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/*'
+        exclude: '../src/{DependencyInjection,Entity,Migrations,Rules,Tests,Kernel.php}'
+
+    # controllers are imported separately to make sure services can be injected
+    # as action arguments even if you don't extend any base controller class
+    App\Infrastructure\Controller\:
+        resource: '../src/Infrastructure/Controller'
+        tags: ['controller.service_arguments']
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    # A special kind of formatter that logs the stack traces (otherwise, Symfony logs do not contain stack traces).
+    formatterWithStackTrace:
+        class: Monolog\Formatter\LineFormatter
+        calls:
+            - [ includeStacktraces ]
+
+    # Session storage.
+    Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
+        arguments:
+            - '%env(DATABASE_URL)%'
+
+    App\Infrastructure\EventSubscriber\LocaleSubscriber:
+        arguments:
+            - '%kernel.default_locale%'
