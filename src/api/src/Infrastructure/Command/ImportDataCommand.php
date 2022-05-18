@@ -9,15 +9,13 @@ use App\Infrastructure\Fixtures\CsvFixtures;
 
 final class ImportDataCommand extends AbstractCommand
 {
-    //protected static string $defaultName = 'app:import-data';
-
     private ProductDao $productDao;
 
     private CsvFixtures $csvFixtures;
 
     public function __construct(ProductDao $productDao, CsvFixtures $csvFixtures)
     {
-        parent::__construct();
+        parent::__construct('app:import-data');
         $this->productDao  = $productDao;
         $this->csvFixtures = $csvFixtures;
         $this->commands    = [
