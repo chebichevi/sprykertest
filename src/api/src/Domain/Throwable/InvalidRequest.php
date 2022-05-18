@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Throwable;
 
-use App\Domain\Throwable\Violations;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 

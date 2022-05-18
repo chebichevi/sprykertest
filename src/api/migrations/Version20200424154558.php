@@ -25,6 +25,7 @@ final class Version20200424154558 extends AbstractMigration
 
         $db->table('product')
             ->column('id')->guid()->primaryKey()->comment('@UUID')
+            ->column('product_id')->string(255)->notNull()
             ->column('product_name')->string(255)->notNull()
             ->column('part_number')->string(255)->notNull()
             ->column('price')->string(255)->notNull();

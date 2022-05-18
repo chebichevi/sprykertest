@@ -25,15 +25,7 @@ create-migrate: ## Create a new migration file
 
 .PHONY: test-% lint-%
 test-api: ## Launch test in api
-	docker-compose exec api composer yaml-lint
-	docker-compose exec api composer cscheck
-	docker-compose exec api composer phpstan
 	docker-compose exec api composer pest
-
-lint-api: ## Launch linter in api
-	docker-compose exec api composer yaml-lint
-	docker-compose exec api composer csfix
-	docker-compose exec api composer cscheck
 
 import-data: ## Create a new migration file
 	docker-compose exec api bin/console app:import-data

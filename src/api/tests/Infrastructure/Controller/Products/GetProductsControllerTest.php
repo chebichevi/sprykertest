@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Infrastructure\Controller\Cities;
+namespace App\Tests\Infrastructure\Controller\Products;
 
 use App\Tests\DummyTestNames;
 
@@ -11,13 +11,13 @@ use function it;
 it(
     DummyTestNames::REQUEST_NOT_FOUND,
     function (): void {
-        $this->assertRequestNotFound('GET', '/api/v3/city/foo');
+        $this->assertRequestNotFound('GET', '/api/productsessss');
     }
-)->group('cities');
+)->group('products');
 
 it(
     DummyTestNames::HANDLES_THE_REQUEST,
     function (): void {
-        $this->assertSuccessRequest('GET', '/api/v3/cities/1');
+        $this->assertSuccessRequest('GET', '/api/products');
     }
-)->group('cities');
+)->group('products');

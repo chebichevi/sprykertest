@@ -31,13 +31,15 @@ abstract class BaseProduct extends \TheCodingMachine\TDBM\AbstractTDBMObject imp
     /**
      * The constructor takes all compulsory arguments.
      *
+     * @param string $productId
      * @param string $productName
      * @param string $partNumber
      * @param string $price
      */
-    public function __construct(string $productName, string $partNumber, string $price)
+    public function __construct(string $productId, string $productName, string $partNumber, string $price)
     {
         parent::__construct();
+        $this->setProductId($productId);
         $this->setProductName($productName);
         $this->setPartNumber($partNumber);
         $this->setPrice($price);
@@ -62,6 +64,26 @@ abstract class BaseProduct extends \TheCodingMachine\TDBM\AbstractTDBMObject imp
     public function setId(string $id) : void
     {
         $this->set('id', $id, 'product');
+    }
+
+    /**
+     * The getter for the "product_id" column.
+     *
+     * @return string
+     */
+    public function getProductId() : string
+    {
+        return $this->get('product_id', 'product');
+    }
+
+    /**
+     * The setter for the "product_id" column.
+     *
+     * @param string $productId
+     */
+    public function setProductId(string $productId) : void
+    {
+        $this->set('product_id', $productId, 'product');
     }
 
     /**
@@ -151,6 +173,7 @@ abstract class BaseProduct extends \TheCodingMachine\TDBM\AbstractTDBMObject imp
     {
         $array = [];
         $array['id'] = $this->getId();
+        $array['productId'] = $this->getProductId();
         $array['productName'] = $this->getProductName();
         $array['partNumber'] = $this->getPartNumber();
         $array['price'] = $this->getPrice();

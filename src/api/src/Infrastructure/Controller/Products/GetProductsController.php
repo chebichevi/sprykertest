@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Controller\Products;
 
-use App\Domain\Dao\ProductDao;
-use App\Domain\ResultIterator\ProductResultIterator;
 use App\Domain\Throwable\InvalidRequest;
 use App\UseCase\Products\GetProducts;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,14 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-use function assert;
 use function count;
-use function implode;
-use function is_string;
-use function method_exists;
-use function reset;
-
-use function strval;
 
 final class GetProductsController extends AbstractController
 {
@@ -35,9 +26,8 @@ final class GetProductsController extends AbstractController
     public function __construct(
         ValidatorInterface $validator,
         GetProducts $getProducts
-    )
-    {
-        $this->validator            = $validator;
+    ) {
+        $this->validator   = $validator;
         $this->getProducts = $getProducts;
     }
 
@@ -51,6 +41,7 @@ final class GetProductsController extends AbstractController
             'all' => $request->query->getBoolean('all', false),
             'offset' => $request->query->getInt('offset', 0),
             'limit' => $request->query->getInt('limit', 10),
+            'productId' => $request->query->get('productId'),
             'productName' => $request->query->get('productName'),
             'partNumber' => $request->query->get('partNumber'),
             'price' => $request->query->get('price'),
@@ -59,6 +50,7 @@ final class GetProductsController extends AbstractController
             'all' => new Assert\Optional(),
             'offset' => new Assert\PositiveOrZero(),
             'limit' => new Assert\Positive(),
+            'productId' => new Assert\Optional([new Assert\Type('string')]),
             'productName' => new Assert\Optional([new Assert\Type('string')]),
             'partNumber' => new Assert\Optional([new Assert\Type('string')]),
             'price' => new Assert\Optional([new Assert\Type('string')]),
@@ -71,6 +63,7 @@ final class GetProductsController extends AbstractController
         $this->offset = $filters['offset'] ?? 0;
 
         $products = $this->getProducts->products(
+            productId: $filters['productId'],
             productName: $filters['productName'],
             partNumber: $filters['partNumber'],
             price: $filters['price']

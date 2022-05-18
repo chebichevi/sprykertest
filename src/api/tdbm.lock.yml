@@ -20,6 +20,10 @@ schema:
           length: 36
           not_null: true
           comment: '@UUID'
+        product_id:
+          type: string
+          length: 255
+          not_null: true
         product_name:
           type: string
           length: 255

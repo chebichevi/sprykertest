@@ -9,10 +9,52 @@ declare(strict_types=1);
 namespace App\Domain\Dao;
 
 use App\Domain\Dao\Generated\BaseProductDao;
+use App\Domain\Model\Product;
+use App\Domain\ResultIterator\ProductResultIterator;
 
 /**
  * The ProductDao class will maintain the persistence of Product class into the product table.
  */
 class ProductDao extends BaseProductDao
 {
+    public function findProductByProductId(string $productId, string $productName): ?Product
+    {
+        return $this->findOne(['product_id' => $productId, 'product_name' => $productName]);
+    }
+
+    public function search(
+        ?string $productId = null,
+        ?string $productName = null,
+        ?string $partNumber = null,
+        ?string $price = null,
+    ): ProductResultIterator {
+        $clauses = [];
+        $params  = [];
+
+        if ($productId !== null && $productId !== '') {
+            $clauses[]           = 'product_id LIKE :productId ';
+            $params['productId'] = '%' . $productId . '%';
+        }
+
+        if ($productName !== null && $productName !== '') {
+            $clauses[]             =  'product_name LIKE :productName ';
+            $params['productName'] = '%' . $productName . '%';
+        }
+
+        if ($partNumber !== null && $partNumber !== '') {
+            $clauses[]            =  'part_number LIKE :partNumber';
+            $params['partNumber'] = '%' . $partNumber . '%';
+        }
+
+        if ($price !== null && $price !== '') {
+            $clauses[]       =  'price LIKE :price';
+            $params['price'] = '%' . $price . '%';
+        }
+
+        return $this->findFromSql(
+            'product',
+            filter: $clauses,
+            parameters: $params,
+        );
+    }
 }
